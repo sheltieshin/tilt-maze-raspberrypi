@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tilt Maze – Virtual Joystick</title>
+
+  <style>
+    body{
+      font-family:system-ui,-apple-system,sans-serif;
+      background:#111; color:#fff;
+      margin:0; height:100vh;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .container{ width:390px; text-align:center; padding:14px; position:relative; }
+    h2{ margin:10px 0 6px; font-weight:650; }
+
+    .bar{ display:flex; gap:8px; margin:12px 0 14px; }
+    .bar button{
+      flex:1; padding:10px;
+      font-size:14px; border-radius:10px;
+      border:none; background:#455a64; color:#fff;
+    }
+
+    .joyWrap{ display:flex; justify-content:center; margin:10px 0 16px; }
+    .joyBase{
+      width:260px; height:260px;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #2a2a2a, #141414);
+      position:relative;
+      touch-action:none;
+      user-select:none; -webkit-user-select:none;
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.08),
+                  0 10px 30px rgba(0,0,0,0.45);
+    }
+    .joyBase::after{
+      content:"";
+      position:absolute; left:50%; top:50%;
+      width:6px; height:6px; border-radius:50%;
+      transform:translate(-50%,-50%);
+      background:#90caf9;
+      opacity:0.8;
+    }
+    .joyKnob{
+      width:92px; height:92px;
+      border-radius:50%;
+      position:absolute;
+      left:50%; top:50%;
+      transform:translate(-50%,-50%);
+      background: radial-gradient(circle at 30% 30%, #607d8b, #263238);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.55);
+    }
+
+    .meters{
+      margin-top:10px;
+      background:#1b1b1b;
+      border-radius:14px;
+      padding:12px;
+      text-align:left;
+    }
+    .meterRow{ display:flex; align-items:center; gap:10px; margin:10px 0; }
+    .label{ width:32px; color:#bbb; font-size:13px; }
+    .meter{
+      flex:1; height:14px;
+      background:#2a2a2a;
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+    }
+    .fill{ height:100%; width:0%; background:#66bb6a; transition:width 70ms linear; }
+    .fill.neg{ background:#ef5350; }
+    .val{ width:62px; text-align:right; color:#bbb; font-size:13px; }
+    .status{ margin-top:6px; color:#aaa; font-size:13px; }
+    .hint{ margin-top:6px; color:#777; font-size:12px; line-height:1.35; }
+
+    /* ✅ GOAL overlay */
+    .overlay{
+      position:absolute; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.65);
+      border-radius:14px;
+      z-index:20;
+    }
+    .overlay .card{
+      background:#1b1b1b;
+      border-radius:16px;
+      padding:18px 16px;
+      width: 88%;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+    }
+    .overlay h1{ margin:0 0 10px; font-size:28px; }
+    .overlay p{ margin:0 0 12px; color:#ccc; font-size:14px; line-height:1.4; }
+    .overlay button{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      background:#42a5f5;
+      color:#fff;
+      font-size:15px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h2>🕹️ Tilt Maze（圓形搖桿）</h2>
+
+  <div class="bar">
+    <button id="enable">Enable</button>
+    <button id="pause">Pause</button>
+    <button id="center">Center</button>
+  </div>
+
+  <div class="joyWrap">
+    <div id="joyBase" class="joyBase">
+      <div id="joyKnob" class="joyKnob"></div>
+    </div>
+  </div>
+
+  <div class="meters">
+    <div class="meterRow">
+      <div class="label">X</div>
+      <div class="meter">
+        <div id="xNeg" class="fill neg"></div>
+        <div id="xPos" class="fill"></div>
+      </div>
+      <div class="val" id="xVal">0.00</div>
+    </div>
+
+    <div class="meterRow">
+      <div class="label">Y</div>
+      <div class="meter">
+        <div id="yNeg" class="fill neg"></div>
+        <div id="yPos" class="fill"></div>
+      </div>
+      <div class="val" id="yVal">0.00</div>
+    </div>
+
+    <div class="status">PWM：<span id="pwm">X_PWM=? Y_PWM=?</span></div>
+    <div class="hint">
+      拖曳搖桿＝連續前後左右＋斜向；放開回中立。<br/>
+      GOAL 後會自動鎖定並顯示 🎉 GOAL！
+    </div>
+  </div>
+
+  <!-- ✅ GOAL overlay -->
+  <div id="goalOverlay" class="overlay">
+    <div class="card">
+      <h1>🎉 GOAL！</h1>
+      <p>已鎖定控制並回到中立位置。你可以按「再玩一次」解鎖。</p>
+      <button id="playAgain">再玩一次（解鎖）</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===============================
+   手感參數
+   =============================== */
+const MAX_X = 0.55;
+const MAX_Y = 0.75;
+const DEADZONE = 0.10;
+const EMA_ALPHA = 0.18;
+const SEND_INTERVAL = 90;
+const STEP = 0.02;
+const INVERT_X = 1;
+const INVERT_Y = 1;
+
+/* =============================== */
+let enabled = false;
+let paused = false;
+let lockedByGoal = false;
+
+let emaX = 0, emaY = 0;
+let lastSend = 0;
+let lastX = 0, lastY = 0;
+
+const joyBase = document.getElementById('joyBase');
+const joyKnob = document.getElementById('joyKnob');
+
+const xValEl = document.getElementById('xVal');
+const yValEl = document.getElementById('yVal');
+const pwmEl  = document.getElementById('pwm');
+
+const xNegEl = document.getElementById('xNeg');
+const xPosEl = document.getElementById('xPos');
+const yNegEl = document.getElementById('yNeg');
+const yPosEl = document.getElementById('yPos');
+
+const goalOverlay = document.getElementById('goalOverlay');
+const playAgainBtn = document.getElementById('playAgain');
+
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function quantize(v, step){ return Math.round(v/step)*step; }
+function deadzone(v, dz){ return Math.abs(v) < dz ? 0 : v; }
+
+function setMeters(x, y){
+  xValEl.textContent = x.toFixed(2);
+  yValEl.textContent = y.toFixed(2);
+
+  const xp = Math.max(0, x), xn = Math.max(0, -x);
+  const yp = Math.max(0, y), yn = Math.max(0, -y);
+
+  xPosEl.style.width = (xp / MAX_X * 100).toFixed(0) + '%';
+  xNegEl.style.width = (xn / MAX_X * 100).toFixed(0) + '%';
+  yPosEl.style.width = (yp / MAX_Y * 100).toFixed(0) + '%';
+  yNegEl.style.width = (yn / MAX_Y * 100).toFixed(0) + '%';
+}
+
+async function sendXY(x, y){
+  try{
+    const r = await fetch('/api/tilt', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({x,y})
+    });
+    const d = await r.json();
+
+    if (d.locked || d.goal) {
+      lockUI();
+    }
+    pwmEl.textContent = `X_PWM=${d.x_pwm} Y_PWM=${d.y_pwm}`;
+  }catch{
+    pwmEl.textContent = 'send error';
+  }
+}
+
+function applyXY(rawX, rawY){
+  if(!enabled || paused || lockedByGoal) return;
+
+  rawX = deadzone(rawX, DEADZONE);
+  rawY = deadzone(rawY, DEADZONE);
+
+  emaX = EMA_ALPHA * rawX + (1-EMA_ALPHA) * emaX;
+  emaY = EMA_ALPHA * rawY + (1-EMA_ALPHA) * emaY;
+
+  let outX = quantize(emaX, STEP) * INVERT_X;
+  let outY = quantize(emaY, STEP) * INVERT_Y;
+
+  outX = clamp(outX, -MAX_X, MAX_X);
+  outY = clamp(outY, -MAX_Y, MAX_Y);
+
+  setMeters(outX, outY);
+
+  const now = Date.now();
+  if (now - lastSend < SEND_INTERVAL) return;
+  if (outX === lastX && outY === lastY) return;
+
+  lastSend = now;
+  lastX = outX; lastY = outY;
+  sendXY(outX, outY);
+}
+
+function resetStick(sendZero=true){
+  joyKnob.style.left = '50%';
+  joyKnob.style.top  = '50%';
+  emaX = 0; emaY = 0;
+  lastX = 0; lastY = 0;
+  setMeters(0,0);
+  if(sendZero && enabled && !paused && !lockedByGoal) sendXY(0,0);
+}
+
+/* ===== GOAL lock UI ===== */
+async function lockUI(){
+  if (lockedByGoal) return;
+  lockedByGoal = true;
+  paused = true;
+  resetStick(false);
+  goalOverlay.style.display = 'flex';
+
+  // 額外保險：再 center 一次（就算後端已 center 也沒差）
+  try { await fetch('/api/center', {method:'POST'}); } catch {}
+}
+
+async function unlockUI(){
+  lockedByGoal = false;
+  paused = false;
+  goalOverlay.style.display = 'none';
+  resetStick(false);
+  try { await fetch('/api/reset_goal', {method:'POST'}); } catch {}
+}
+
+/* ===============================
+   搖桿拖曳
+   =============================== */
+let dragging = false;
+let baseRect = null;
+
+function getRadius(){
+  const base = joyBase.getBoundingClientRect();
+  const knob = joyKnob.getBoundingClientRect();
+  return (base.width - knob.width) / 2;
+}
+
+function pointerToXY(clientX, clientY){
+  const base = baseRect || joyBase.getBoundingClientRect();
+  const cx = base.left + base.width/2;
+  const cy = base.top  + base.height/2;
+
+  let dx = clientX - cx;
+  let dy = clientY - cy;
+
+  const r = getRadius();
+  const dist = Math.hypot(dx, dy);
+
+  if (dist > r){
+    dx = dx / dist * r;
+    dy = dy / dist * r;
+  }
+
+  joyKnob.style.left = (50 + dx / (base.width/2) * 50) + '%';
+  joyKnob.style.top  = (50 + dy / (base.height/2) * 50) + '%';
+
+  const normX = dx / r;
+  const normY = -dy / r;  // 上推=正
+
+  return [normX * MAX_X, normY * MAX_Y];
+}
+
+function onDown(e){
+  if(!enabled || paused || lockedByGoal) return;
+  dragging = true;
+  baseRect = joyBase.getBoundingClientRect();
+  joyBase.setPointerCapture?.(e.pointerId);
+  const [x,y] = pointerToXY(e.clientX, e.clientY);
+  applyXY(x,y);
+}
+function onMove(e){
+  if(!dragging) return;
+  const [x,y] = pointerToXY(e.clientX, e.clientY);
+  applyXY(x,y);
+}
+function onUp(){
+  dragging = false;
+  baseRect = null;
+  resetStick(true);
+}
+
+joyBase.addEventListener('pointerdown', onDown);
+window.addEventListener('pointermove', onMove);
+window.addEventListener('pointerup', onUp);
+window.addEventListener('pointercancel', onUp);
+
+/* ===============================
+   功能鍵
+   =============================== */
+document.getElementById('enable').onclick = () => {
+  enabled = true;
+  pwmEl.textContent = 'enabled';
+  resetStick(false);
+};
+document.getElementById('pause').onclick = () => {
+  if (lockedByGoal) return; // GOAL 鎖定時不給手動解鎖
+  paused = !paused;
+  pwmEl.textContent = paused ? 'paused' : 'resumed';
+  if(paused) resetStick(false);
+};
+document.getElementById('center').onclick = async () => {
+  if(!enabled) return;
+
+  // 如果已 GOAL 鎖定，按 Center 視同「再玩一次」
+  if (lockedByGoal) {
+    await unlockUI(); // 這裡會 POST /api/reset_goal
+  }
+
+  await fetch('/api/center', {method:'POST'});
+  resetStick(false);
+};
+
+playAgainBtn.onclick = unlockUI;
+
+/* ===============================
+   每 200ms 輪詢 GOAL 狀態
+   =============================== */
+setInterval(async () => {
+  try{
+    const r = await fetch('/api/goal');
+    const d = await r.json();
+    if (d.goal) lockUI();
+  }catch{}
+}, 200);
+</script>
+</body>
+</html>
+

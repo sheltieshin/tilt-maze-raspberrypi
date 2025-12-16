@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tilt Maze – Gamepad + Diagonal</title>
+
+  <style>
+    body{
+      font-family:system-ui,-apple-system,sans-serif;
+      background:#111; color:#fff;
+      margin:0; height:100vh;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .container{ width:390px; text-align:center; padding:14px; }
+    h2{ margin:10px 0 10px; font-weight:650; }
+
+    .pad{
+      display:grid;
+      grid-template-columns: 92px 92px 92px;
+      grid-template-rows: 92px 92px 92px;
+      gap:12px;
+      justify-content:center;
+      align-items:center;
+      margin:18px 0 12px;
+    }
+    .pad button{
+      width:92px; height:92px;
+      border-radius:18px; border:none;
+      font-size:30px;
+      background:#263238; color:#fff;
+      user-select:none; -webkit-user-select:none;
+      touch-action:none;
+    }
+    .pad button:active{ background:#42a5f5; }
+
+    .bar{ display:flex; gap:8px; margin-top:10px; }
+    .bar button{
+      flex:1; padding:10px;
+      font-size:14px; border-radius:10px;
+      border:none; background:#455a64; color:#fff;
+    }
+
+    .info{
+      margin-top:10px;
+      font-size:14px;
+      color:#ddd;
+      line-height:1.35;
+    }
+
+    .meters{
+      margin-top:12px;
+      background:#1b1b1b;
+      border-radius:14px;
+      padding:12px;
+      text-align:left;
+    }
+    .meterRow{
+      display:flex; align-items:center; gap:10px;
+      margin:10px 0;
+    }
+    .label{ width:32px; color:#bbb; font-size:13px; }
+    .meter{
+      flex:1; height:14px;
+      background:#2a2a2a;
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      background:#66bb6a;
+      transition:width 80ms linear;
+    }
+    .fill.neg{ background:#ef5350; }
+    .val{ width:56px; text-align:right; color:#bbb; font-size:13px; }
+    .status{ margin-top:6px; color:#aaa; font-size:13px; }
+    .hint{ margin-top:6px; color:#888; font-size:12px; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h2>🎮 Tilt Maze（斜向＋速度條）</h2>
+
+  <!-- 斜向 + 十字鍵 -->
+  <div class="pad">
+    <button id="nw">↖</button>
+    <button id="up">▲</button>
+    <button id="ne">↗</button>
+
+    <button id="left">◀</button>
+    <button id="stop">⏹</button>
+    <button id="right">▶</button>
+
+    <button id="sw">↙</button>
+    <button id="down">▼</button>
+    <button id="se">↘</button>
+  </div>
+
+  <div class="bar">
+    <button id="enable">Enable</button>
+    <button id="pause">Pause</button>
+    <button id="center">Center</button>
+  </div>
+
+  <div class="meters">
+    <div class="meterRow">
+      <div class="label">X</div>
+      <div class="meter"><div id="xNeg" class="fill neg"></div><div id="xPos" class="fill"></div></div>
+      <div class="val" id="xVal">0.00</div>
+    </div>
+    <div class="meterRow">
+      <div class="label">Y</div>
+      <div class="meter"><div id="yNeg" class="fill neg"></div><div id="yPos" class="fill"></div></div>
+      <div class="val" id="yVal">0.00</div>
+    </div>
+
+    <div class="status">
+      PWM：<span id="pwm">X_PWM=? Y_PWM=?</span>
+    </div>
+    <div class="hint">
+      短按＝小傾斜；長按＝逐步加速；放開＝回中立
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===============================
+   手感參數（可交作業穩定版）
+   =============================== */
+
+// 短按（初始小傾斜）
+const BASE_X = 0.30;
+const BASE_Y = 0.45;
+
+// 長按上限（最大傾斜）
+const MAX_X  = 0.60;
+const MAX_Y  = 0.80;
+
+// 長按加速步進
+const ACC_X = 0.04;
+const ACC_Y = 0.06;
+
+// 送出頻率（越大越穩、越小越即時）
+const INTERVAL = 140;
+
+// 斜向時的縮放（避免 X+Y 同時最大太暴力）
+const DIAG_SCALE = 0.70;
+
+/* ===============================
+   狀態
+   =============================== */
+let enabled = false;
+let paused = false;
+let holdTimer = null;
+let curX = 0, curY = 0;
+
+/* ===============================
+   DOM
+   =============================== */
+const xValEl = document.getElementById('xVal');
+const yValEl = document.getElementById('yVal');
+const pwmEl  = document.getElementById('pwm');
+
+const xNegEl = document.getElementById('xNeg');
+const xPosEl = document.getElementById('xPos');
+const yNegEl = document.getElementById('yNeg');
+const yPosEl = document.getElementById('yPos');
+
+/* ===============================
+   Utils
+   =============================== */
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+function setMeters(x, y){
+  xValEl.textContent = x.toFixed(2);
+  yValEl.textContent = y.toFixed(2);
+
+  const xp = Math.max(0, x);
+  const xn = Math.max(0, -x);
+  const yp = Math.max(0, y);
+  const yn = Math.max(0, -y);
+
+  // 以 MAX 做百分比
+  xPosEl.style.width = (xp / MAX_X * 100).toFixed(0) + '%';
+  xNegEl.style.width = (xn / MAX_X * 100).toFixed(0) + '%';
+  yPosEl.style.width = (yp / MAX_Y * 100).toFixed(0) + '%';
+  yNegEl.style.width = (yn / MAX_Y * 100).toFixed(0) + '%';
+}
+
+async function sendXY(x, y){
+  try{
+    const r = await fetch('/api/tilt', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({x,y})
+    });
+    const d = await r.json();
+    pwmEl.textContent = `X_PWM=${d.x_pwm} Y_PWM=${d.y_pwm}`;
+  }catch{
+    pwmEl.textContent = 'send error';
+  }
+}
+
+function update(x, y){
+  if(!enabled || paused) return;
+  curX = x; curY = y;
+  setMeters(x, y);
+  sendXY(x, y);
+}
+
+function stop(){
+  clearInterval(holdTimer);
+  holdTimer = null;
+  update(0, 0);
+}
+
+/* ===============================
+   長按加速（含斜向）
+   =============================== */
+function startHold(mode){
+  if(!enabled || paused) return;
+
+  clearInterval(holdTimer);
+
+  // 方向目標（unitX/unitY = -1/0/+1）
+  let ux = 0, uy = 0, isDiag = false;
+
+  switch(mode){
+    case 'up':    ux=0;  uy= 1; break;
+    case 'down':  ux=0;  uy=-1; break;
+    case 'left':  ux=-1; uy= 0; break;
+    case 'right': ux= 1; uy= 0; break;
+    case 'nw':    ux=-1; uy= 1; isDiag=true; break;
+    case 'ne':    ux= 1; uy= 1; isDiag=true; break;
+    case 'sw':    ux=-1; uy=-1; isDiag=true; break;
+    case 'se':    ux= 1; uy=-1; isDiag=true; break;
+  }
+ 
+  // 基本速度大小（斜向也用同一個）
+ const baseSpeed = Math.max(BASE_X, BASE_Y);
+
+ // 方向正規化（斜向 = 0.707）
+ const mag = Math.hypot(ux, uy) || 1; // 1 或 √2
+ let x = (ux / mag) * baseSpeed;
+ let y = (uy / mag) * baseSpeed;
+
+  update(x, y);
+
+  holdTimer = setInterval(() => {
+    // 逐步推近上限
+    if(ux !== 0){
+      x = x + ux * ACC_X;
+      x = clamp(x, -MAX_X, MAX_X);
+    }
+    if(uy !== 0){
+      y = y + uy * ACC_Y;
+      y = clamp(y, -MAX_Y, MAX_Y);
+    }
+
+    // 最後再限制最大值（保命）
+   x = clamp(x, -MAX_X, MAX_X);
+   y = clamp(y, -MAX_Y, MAX_Y);
+
+	
+    update(x, y);
+  }, INTERVAL);
+}
+
+/* ===============================
+   Bind buttons (mouse + touch)
+   =============================== */
+function bind(btn, mode){
+  btn.addEventListener('mousedown', () => startHold(mode));
+  btn.addEventListener('mouseup', stop);
+  btn.addEventListener('mouseleave', stop);
+
+  btn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startHold(mode);
+  }, {passive:false});
+  btn.addEventListener('touchend', stop);
+  btn.addEventListener('touchcancel', stop);
+}
+
+bind(document.getElementById('up'), 'up');
+bind(document.getElementById('down'), 'down');
+bind(document.getElementById('left'), 'left');
+bind(document.getElementById('right'), 'right');
+
+bind(document.getElementById('nw'), 'nw');
+bind(document.getElementById('ne'), 'ne');
+bind(document.getElementById('sw'), 'sw');
+bind(document.getElementById('se'), 'se');
+
+/* 中間停止鍵 */
+document.getElementById('stop').onclick = stop;
+
+/* 功能鍵 */
+document.getElementById('enable').onclick = () => {
+  enabled = true;
+  pwmEl.textContent = 'enabled';
+  setMeters(0, 0);
+};
+
+document.getElementById('pause').onclick = () => {
+  paused = !paused;
+  if(paused) stop();
+  pwmEl.textContent = paused ? 'paused' : 'resumed';
+};
+
+document.getElementById('center').onclick = async () => {
+  await fetch('/api/center', {method:'POST'});
+  stop();
+};
+</script>
+</body>
+</html>
+

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+
+# HTTPS cert (DO NOT COMMIT)
+cert/*.pem
+cert/*.key
+
+# OS files
+.DS_Store
+
