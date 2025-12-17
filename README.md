@@ -1,4 +1,4 @@
-# 🌐 IoT-Based Web-Controlled Tilt Maze System
+# IoT-Based Web-Controlled Tilt Maze System
 
 本專題為一個以 **Raspberry Pi** 為 IoT 終端裝置（IoT End Device）的互動式控制系統。系統透過 **HTTPS Web 介面** 接收使用者輸入，經由網路傳輸與控制邏輯處理後，驅動實體致動器（伺服馬達）改變迷宮平台傾斜狀態，並結合感測與回饋機制，形成完整的 IoT 控制迴路。
 
@@ -6,7 +6,7 @@
 
 #### 作者：張嘉凌 113453008
 
-## 1. 專案概覽（Project Overview）
+## 1. 專案概覽
 
 ### 1.1 專案目標
 
@@ -31,7 +31,7 @@
 
 ---
 
-## 2. 系統架構（System Architecture）
+## 2. 系統架構
 
 ### 2.1 IoT 系統流程
 
@@ -51,7 +51,7 @@ Sensing (Micro Switch)
 Feedback (Buzzer + Web UI)
 ```
 
-### 2.2 為何使用 HTTPS（Why HTTPS is Required）
+### 2.2 為何使用 HTTPS
 
 本系統採用 **HTTPS** 作為 Web 與 IoT 裝置之間的通訊方式，原因如下：
 
@@ -63,7 +63,7 @@ Feedback (Buzzer + Web UI)
 
 ---
 
-## 3. 硬體與 Physical Layer 設計（IoT 視角）
+## 3. 硬體與 Physical Layer 設計
 
 ### 3.1 Physical Layer 在 IoT 系統中的角色
 
@@ -75,7 +75,7 @@ Feedback (Buzzer + Web UI)
 
 ---
 
-### 3.2 致動設計（Actuation Layer）
+### 3.2 致動設計
 
 本系統的致動層設計如下：
 
@@ -90,7 +90,7 @@ Feedback (Buzzer + Web UI)
 - 降低多軸同步控制的複雜度
 - 提升整體控制穩定性
 
-## 4. 軟體架構與模組分工（Software Architecture）
+## 4. 軟體架構與模組分工
 
 ### 4.1 專案檔案結構與功能對應
 
@@ -110,7 +110,7 @@ tiltmaze/
 └── ir_read_only.py         # 感測輸入測試
 ```
 
-### 4.2 模組化設計目的（IoT Design Rationale）
+### 4.2 模組化設計目的
 
 透過模組化設計，本系統達成以下 **IoT 工程目標**：
 
@@ -121,12 +121,11 @@ tiltmaze/
 
 ---
 
-## 5. 設計演進與工程取捨（Design Iteration & Reflection）
+## 5. 設計演進與工程取捨
 
 ### 5.1 初期構想與問題
 
-專題初期嘗試使用 **手機陀螺儀（Gyroscope）** 作為控制輸入來源，  
-但在實作過程中發現以下問題：
+專題初期嘗試使用 **手機陀螺儀（Gyroscope）** 作為控制輸入來源，但在實作過程中發現以下問題：
 
 - 陀螺儀屬於 **三維感測（Pitch / Roll / Yaw）**  
 - 迷宮控制實際僅需 **二維傾斜**  
@@ -135,7 +134,7 @@ tiltmaze/
 
 ---
 
-### 5.2 控制方式的修正（IoT 視角）
+### 5.2 控制方式的修正
 
 為提升控制穩定性與可預測性，最終改採 **Web 圓形虛擬搖桿（2D Control UI）**：
 
@@ -163,7 +162,7 @@ tiltmaze/
 
 ---
 
-## 6. GOAL 感測與回饋機制（Sense & Feedback）
+## 6. GOAL 感測與回饋機制
 
 ### 6.1 感測與事件觸發
 
@@ -184,7 +183,7 @@ tiltmaze/
 
 ---
 
-## 7. 系統啟動與測試（Deployment & Testing）
+## 7. 系統啟動與測試
 
 啟動主程式：
 
@@ -196,7 +195,7 @@ python3 app.py
 ```bash
 https://<raspberry-pi-ip>:8443
 ```
-## 8. 限制與未來展望（Limitations & Future Work）
+## 8. 限制與未來展望
 
 ### 已知限制
 
@@ -212,7 +211,7 @@ https://<raspberry-pi-ip>:8443
 
 ---
 
-## 9. 總結（IoT 課程對齊）
+## 9. 總結
 
 本專題強調：
 
