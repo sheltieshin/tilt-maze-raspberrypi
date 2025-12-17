@@ -81,7 +81,6 @@ Feedback (Buzzer + Web UI)
 在 IoT 系統中，若 **Physical Layer 不穩定**，上層的 **Connectivity（連網）** 與 **Control Logic（控制邏輯）** 將無法被正確驗證。
 因此，本專題將「**結構穩定性**」視為 **IoT 系統可靠性的前提條件**。
 
----
 
 ### 3.2 致動設計
 
@@ -101,6 +100,7 @@ Feedback (Buzzer + Web UI)
 ### 3.3 GPIO & Power Wiring Overview
 To ensure system reproducibility and physical-layer reliability, this project documents the GPIO, I2C, and power wiring design. - Raspberry Pi acts as the IoT control node. - PCA9685 is used as an external PWM controller via I2C. - Servo motors are powered by an external 5V supply with shared ground. - GPIO-based sensors and feedback devices are directly connected to the Pi. This design follows common IoT hardware integration practices and ensures stable operation of the actuation layer.
 
+---
 
 ## 4. 軟體架構與模組分工
 
@@ -144,7 +144,6 @@ tiltmaze/
 - 多餘維度導致輸入雜訊與方向干擾  
 - 控制結果難以預測與重現  
 
----
 
 ### 5.2 控制方式的修正
 
@@ -155,7 +154,6 @@ tiltmaze/
 - 提升 IoT 控制效果的一致性  
 - 更適合遠端 **Web-based IoT 控制情境**  
 
----
 
 ### 5.3 致動結構的取捨
 
@@ -182,7 +180,6 @@ tiltmaze/
 - 透過 **背景執行緒** 偵測 Edge Trigger  
 - 避免誤觸與重複觸發  
 
----
 
 ### 6.2 事件發生後系統行為
 
@@ -207,6 +204,9 @@ python3 app.py
 ```bash
 https://<raspberry-pi-ip>:8443
 ```
+
+---
+
 ## 8. 限制與未來展望
 
 ### 已知限制
