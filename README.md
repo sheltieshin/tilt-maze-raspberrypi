@@ -98,6 +98,10 @@ Feedback (Buzzer + Web UI)
 - 降低多軸同步控制的複雜度
 - 提升整體控制穩定性
 
+### 3.3 GPIO & Power Wiring Overview
+To ensure system reproducibility and physical-layer reliability, this project documents the GPIO, I2C, and power wiring design. - Raspberry Pi acts as the IoT control node. - PCA9685 is used as an external PWM controller via I2C. - Servo motors are powered by an external 5V supply with shared ground. - GPIO-based sensors and feedback devices are directly connected to the Pi. This design follows common IoT hardware integration practices and ensures stable operation of the actuation layer.
+
+
 ## 4. 軟體架構與模組分工
 
 ### 4.1 專案檔案結構與功能對應
