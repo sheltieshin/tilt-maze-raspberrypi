@@ -49,6 +49,7 @@ Physical Layer (Servo + Platform)
 Sensing (Micro Switch)
         ↓
 Feedback (Buzzer + Web UI)
+```
 
 ### 2.2 為何使用 HTTPS（Why HTTPS is Required）
 
@@ -107,6 +108,7 @@ tiltmaze/
 ├── calibrate_endpoints.py  # 伺服校正工具
 ├── button_buzzer_test.py   # 感測與蜂鳴器測試
 └── ir_read_only.py         # 感測輸入測試
+```
 
 ### 4.2 模組化設計目的（IoT Design Rationale）
 
@@ -188,12 +190,12 @@ tiltmaze/
 
 ```bash
 python3 app.py
-
+```
 使用手機瀏覽器開啟：
 
 ```bash
 https://<raspberry-pi-ip>:8443
-
+```
 ## 8. 限制與未來展望（Limitations & Future Work）
 
 ### 已知限制
