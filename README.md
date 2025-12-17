@@ -117,9 +117,8 @@ tiltmaze/
 │
 ├── servo_test_one.py       # 單顆伺服測試（確認硬體/電源/PWM 基本可動）
 ├── servo_test_ch2.py       # 第二通道伺服測試（多通道驗證）
-├── calibrate_endpoints.py  # 伺服校正工具（找出每顆伺服安全PWM範圍與中立點）
-├── button_buzzer_test.py   # 感測器/蜂鳴器快速測試（Sense+Feedback單元驗證）
-└── ir_read_only.py         # 感測輸入測試（只讀取，不驅動致動器）
+├── auto_endpoints_safe.py  # 伺服校正工具（找出每顆伺服安全PWM範圍與中立點）
+└── button_buzzer_test.py   # 感測器/蜂鳴器快速測試（Sense+Feedback單元驗證）
 ```
 
 ### 4.2 模組化設計目的
