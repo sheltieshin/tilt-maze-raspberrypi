@@ -6,6 +6,16 @@
 
 #### 作者：張嘉凌 113453008
 
+1. Project Overview
+2. System Architecture (Final Design)
+3. Hardware & Physical Layer Design
+4. Software Architecture
+5. Design Iteration & Engineering Trade-offs
+6. GOAL Sensing & Feedback
+7. Deployment & Testing
+8. Limitations & Future Work
+9. Conclusion (IoT Alignment)
+
 ## 1. 專案概覽
 
 ### 1.1 專案目標
