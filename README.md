@@ -67,6 +67,14 @@ Feedback (Buzzer + Web UI)
 
 ### 3.1 Physical Layer 在 IoT 系統中的角色
 
+| Component | GPIO Pin | Description |
+|---------|----------|-------------|
+| GOAL Switch | GPIO17 | Edge-triggered input (PUD_UP) |
+| Buzzer | GPIO22 | Feedback output |
+| PCA9685 SDA | GPIO2 | I2C Data |
+| PCA9685 SCL | GPIO3 | I2C Clock |
+| Servo Power | External 5V | Shared ground with Pi |
+
 在本 IoT 系統中，實體結構屬於 **Physical / Actuation Layer**，其設計目的並非機械效能本身，而是確保：
 > **網路控制指令能被穩定、可重現地轉換為物理動作。**
 
