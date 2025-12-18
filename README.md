@@ -241,6 +241,8 @@ PCA9685 預設位址為 0x40（可由板上 A0–A5 調整）
 
 
 
+
+
 #### 1. servo_test_ch0.py、servo_test_ch2.py （單通道伺服測試程式）
 
 用途： 最小化測試 PCA9685 CH0 是否能正常輸出 PWM，確認 I2C 與伺服接線是否正常。
@@ -254,6 +256,7 @@ time.sleep(2)
 set_pwm(0, 450)
 
 ```
+
 
 
 #### 2. auto_endpoints_safe.py（伺服端點校正工具 = 只在調機時跑)
@@ -273,6 +276,7 @@ def find_endpoint(ch, start_pwm, direction, label):
 從中心點開始，按 Enter 逐步增加/減少 PWM，直到覺得「快撐住/夠斜了」輸入 q 停下，回傳該軸端點 PWM。
 
 main() 依序找 X_MAX → X_MIN → Y_MAX → Y_MIN，最後印出校正值，讓我貼回 config.py。
+
 
 
 #### 3. config.py（全域硬體與行為設定）
@@ -303,6 +307,7 @@ Y_SCALE = 0.65
 
 
 
+
 #### 4. gimbal.py（雙軸雲台控制抽象）
 
 用途： 將「前端輸入的 -1.0～+1.0 傾斜值」轉換為安全的 PWM，統一處理中心點、端點限制與縮放，避免直接操作伺服造成抖動或硬撐。
@@ -319,6 +324,7 @@ def xy_to_pwm(self, v):
 ```
 
 這支會被主程式 app.py 在遊戲運作時呼叫，遊戲中實際控制雲台
+
 
 
 
@@ -339,9 +345,13 @@ def set_pwm_off(self, channel, off):
 被 gimbal.py 與所有 校正程式 共用，屬於專案的 核心底層模組（必用）。
 
 
+
+
 #### 6. app.py（主程式／Web 控制與遊戲邏輯）
 
 用途： 專案的實際執行入口。提供手機端 Web API 控制雲台傾斜，並監聽磁簧開關達成終點後觸發蜂鳴器。
+
+
 
 - 初始化雲台控制（PCA9685 + Gimbal）：建立 PCA9685 與雙軸雲台控制物件，載入 config.py 的端點與中心值，啟動時先回中立位置。
 
@@ -368,6 +378,8 @@ gimbal.center()
 
 ```
 
+
+
 - 磁簧開關監聽（終點偵測）：背景執行緒監聽磁簧開關 1→0 邊緣，球進洞即判定通關、回中立並鳴叫提示。
 
 ```
@@ -377,6 +389,8 @@ def goal_watcher():
         gimbal.center()
         beep(0.8)
 ```
+
+
 
 - 蜂鳴器控制（避免重複觸發）：使用 lock 保護蜂鳴器，避免多執行緒同時鳴叫造成異常。
 
@@ -388,6 +402,8 @@ def beep(duration=0.8):
         GPIO.output(BUZZER_GPIO, GPIO.LOW)
 ```
 
+
+
 - Web API：雲台傾斜控制（遊戲核心）：接收前端傳來的標準化 X/Y 值，透過 gimbal.py 轉為安全 PWM 控制雙軸雲台；通關後自動鎖定操作。
 
 ```
@@ -397,6 +413,8 @@ def api_tilt():
         return jsonify({"locked": True})
     x_pwm, y_pwm = gimbal.set_xy(x, y)
 ```
+
+
 
 - 系統啟動（HTTPS + 背景監聽）：啟動終點監聽執行緒，並以 HTTPS 提供手機端即時控制介面。
 
@@ -427,7 +445,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 ---
 
-## Step 9：網頁控制介面（Web Control）
+## Step 10：網頁控制介面（Web Control）
 
 本專題使用 Flask 建立 HTTPS 伺服器，提供手機瀏覽器操作介面。
 
@@ -443,6 +461,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 
 圖 7: 進入頁面後，雲台平台會維持在「中立水平位置」，圓形搖桿顯示在中心點，代表目前沒有輸入傾斜指令。
+
 - 介面上方提供三個控制按鈕：
 - Enable：啟用搖桿控制
 - Pause：暫停控制（凍結目前平台角度）
@@ -454,6 +473,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 
 圖 8: 圓形搖桿操作示意（連續傾斜與斜向移動）
+
 - 使用者可拖曳圓形搖桿，連續控制平台的前後（Y 軸）與左右（X 軸）傾斜角度。
 - 搖桿支援 斜向（↖ ↗ ↙ ↘）輸入，可同時產生 X 與 Y 的控制值，使球體能夠沿斜向路徑滾動。
 - 搖桿移動距離越大，代表傾斜幅度越大；鬆開搖桿後，平台會自動回到中立位置，以避免球體失控。
@@ -464,11 +484,15 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 
 圖 9: GOAL 觸發後的系統反應畫面
+
 - 當球體滾入終點並觸發 磁簧開關（Reed Switch） 時，系統會：
 - 立即顯示 🎉 GOAL！ 提示視窗，啟動蜂鳴器發出提示音，自動將平台回到中立位置
 - 鎖定控制，防止平台繼續晃動，使用者可按下「再玩一次（解鎖）」按鈕，重置狀態並重新開始遊戲。
 
 ---
+
+
+
 
 ## Step 10：完整系統整合（Final Integration）
 
@@ -487,26 +511,10 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 YouTube 示範影片： https://youtu.be/YX4nWWXMFIo?si=_V7ajburnaWpJGNI
 
----
-
-## Step 12：程式碼結構（Source Code）
-
-```text
-.
-├── app.py
-├── config.py
-├── gimbal.py
-├── pca9685_raw.py
-├── auto_endpoints_safe.py
-├── servo_test_ch0.py
-├── servo_test_ch2.py
-├── static/index.html
-└── README.md
-```
 
 ---
 
-## Step 13：參考資料（References）
+## Step 12：參考資料（References）
 
 * Scott Kildall, *Raspberry Pi: Python scripting the GPIO*
   [https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/](https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/)
