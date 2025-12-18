@@ -16,6 +16,8 @@
 8. Limitations & Future Work
 9. Conclusion (IoT Alignment)
 
+##### 範例影片：https://youtu.be/YX4nWWXMFIo
+
 ## 1. 專案概覽
 
 ### 1.1 專案目標
