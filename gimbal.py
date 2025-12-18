@@ -6,7 +6,7 @@ class ServoEndpoint:
     pwm_min: int
     pwm_max: int
     scale: float = 1.0
-    pwm_center = None   # ← Python 3.7 相容寫法
+    pwm_center = None
 
     def center(self):
         # 若有指定中心點，優先使用

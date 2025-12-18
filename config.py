@@ -9,24 +9,24 @@ SERVO_Y_CH = 2   # up前後 (pitch)
 # Servo endpoints (你先用這組，之後用 calibrate_endpoints.py 調整)
 # PWM units are 0~4095 at 50Hz, typical usable range for SG90 ~ 150~600
 X_CENTER = 380
-Y_CENTER = 430
+Y_CENTER = 410
 
 X_MIN = 180
-X_MAX = 480
-Y_MIN = 190
+X_MAX = 500
+Y_MIN = 230
 Y_MAX = 560
 
 # Tilt scaling (web input -1.0 ~ +1.0 maps to endpoints)
 # 建議先小一點，避免抖動/硬撐
-X_SCALE = 0.55
-Y_SCALE = 0.75
+X_SCALE = 0.75
+Y_SCALE = 0.65
 
 # IR sensor GPIO (BCM numbering)
 IR_GPIO = 23
 
 # LED + Buzzer GPIO (BCM)
-LED_GPIO = 24
-BUZZER_GPIO = 25
+REED_GPIO = 17
+BUZZER_GPIO = 22
 
 # IR polarity: None = auto-detect at runtime (recommended)
 # True  => triggered when GPIO == 1
