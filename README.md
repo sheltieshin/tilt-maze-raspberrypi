@@ -212,7 +212,7 @@ finally:
 | 內建模組  | `gimbal.py`, `config.py`                                      |
 
 
-## Enable I2C (Raspberry Pi)
+### Enable I2C (Raspberry Pi)
 
 - 1. 開啟設定工具
 ```
@@ -243,7 +243,7 @@ PCA9685 預設位址為 0x40（可由板上 A0–A5 調整）
 
 
 
-#### 1. servo_test_ch0.py、servo_test_ch2.py （單通道伺服測試程式）
+### 1. servo_test_ch0.py、servo_test_ch2.py （單通道伺服測試程式）
 
 用途： 最小化測試 PCA9685 CH0 是否能正常輸出 PWM，確認 I2C 與伺服接線是否正常。
 
@@ -259,7 +259,7 @@ set_pwm(0, 450)
 
 
 
-#### 2. auto_endpoints_safe.py（伺服端點校正工具 = 只在調機時跑)
+### 2. auto_endpoints_safe.py（伺服端點校正工具 = 只在調機時跑)
 
 用途： 互動式「一小步一小步」移動 SG90（透過 PCA9685），讓你手動找出 X/Y 軸的安全極限位置（X_MIN/X_MAX/Y_MIN/Y_MAX），最後把結果貼回 config.py，避免伺服撐住或超行程。
 
@@ -279,7 +279,7 @@ main() 依序找 X_MAX → X_MIN → Y_MAX → Y_MIN，最後印出校正值，�
 
 
 
-#### 3. config.py（全域硬體與行為設定）
+### 3. config.py（全域硬體與行為設定）
 
 用途： 集中管理伺服端點、通道對應、GPIO 腳位與 Web 服務設定，讓主程式與校正工具共用同一組參數，避免寫死在程式中。
 
@@ -308,7 +308,7 @@ Y_SCALE = 0.65
 
 
 
-#### 4. gimbal.py（雙軸雲台控制抽象）
+### 4. gimbal.py（雙軸雲台控制抽象）
 
 用途： 將「前端輸入的 -1.0～+1.0 傾斜值」轉換為安全的 PWM，統一處理中心點、端點限制與縮放，避免直接操作伺服造成抖動或硬撐。
 
@@ -328,7 +328,7 @@ def xy_to_pwm(self, v):
 
 
 
-#### 5. pca9685_raw.py（PCA9685 Driver）
+### 5. pca9685_raw.py（PCA9685 Driver）
 
 用途： 本專案使用 **自製的低階 PCA9685 驅動**，不依賴外部第三方套件（如 Adafruit library），直接透過 I2C 操作 PCA9685，設定 PWM 頻率並對指定 channel 輸出 PWM，是所有伺服控制與校正程式的最底層依賴。
 
@@ -347,7 +347,7 @@ def set_pwm_off(self, channel, off):
 
 
 
-#### 6. app.py（主程式／Web 控制與遊戲邏輯）
+### 6. app.py（主程式／Web 控制與遊戲邏輯）
 
 用途： 專案的實際執行入口。提供手機端 Web API 控制雲台傾斜，並監聽磁簧開關達成終點後觸發蜂鳴器。
 
@@ -429,7 +429,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 ---
 
-## Step 9：機構設計（Mechanical Design）
+## Step 9：機構設計
 
 本專題使用 **雙層雙軸雲台結構**：
 
@@ -494,7 +494,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 
 
-## Step 10：完整系統整合（Final Integration）
+## Step 11：完整系統整合
 
 系統運作流程如下：
 1. 使用者透過手機控制平台
@@ -507,14 +507,14 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 ---
 
-## Step 11：示範影片（Demo Video）
+## Step 12：示範影片
 
 YouTube 示範影片： https://youtu.be/YX4nWWXMFIo?si=_V7ajburnaWpJGNI
 
 
 ---
 
-## Step 12：參考資料（References）
+## Step 13：參考資料
 
 * Scott Kildall, *Raspberry Pi: Python scripting the GPIO*
   [https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/](https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/)
