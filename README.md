@@ -176,7 +176,85 @@ finally:
 
 ## Step 8：程式碼說明
 
-1. auto_endpoints_safe.py（伺服端點校正工具 = 只在調機時跑)
+
+### 程式碼結構（Source Code）
+
+```text
+.
+├── app.py
+├── config.py
+├── gimbal.py
+├── pca9685_raw.py
+├── auto_endpoints_safe.py
+├── servo_test_ch0.py
+├── servo_test_ch2.py
+├── static/index.html
+└── README.md
+
+### 必要安裝套件
+- Python 3.7+
+- Flask
+- RPi.GPIO
+- smbus (I2C)
+
+### Install
+sudo apt update
+sudo apt install -y python3-pip python3-rpi.gpio python3-smbus i2c-tools
+pip3 install flask
+
+| 套件       | 用到的程式                                                         |
+| -------- | ------------------------------------------------------------- |
+| Flask    | `app.py`                                                      |
+| RPi.GPIO | `app.py`                                                      |
+| smbus    | `pca9685_raw.py`, `auto_endpoints_safe.py`, `servo_test_*.py` |
+| 內建模組     | `gimbal.py`, `config.py`                                      |
+
+
+## Enable I2C (Raspberry Pi)
+
+- 1. 開啟設定工具
+```
+sudo raspi-config
+```
+- 2. 進入選單
+```
+Interface Options
+ → I2C
+ → Yes
+```
+- 3. 重新開機
+```
+sudo reboot
+```
+- 4.確認 I2C 是否啟用
+```
+i2cdetect -y 1
+```
+
+若看到 40，表示 PCA9685 已被偵測到。
+
+本專案使用 I2C bus 1（Raspberry Pi 預設）
+
+PCA9685 預設位址為 0x40（可由板上 A0–A5 調整）
+
+
+
+#### 1. servo_test_ch0.py、servo_test_ch2.py （單通道伺服測試程式）
+
+用途： 最小化測試 PCA9685 CH0 是否能正常輸出 PWM，確認 I2C 與伺服接線是否正常。
+
+僅用於 硬體初期驗證與除錯；正式系統已由 pca9685_raw.py + gimbal.py 取代，不會在主程式中使用。
+
+
+```
+set_pwm(0, 300)
+time.sleep(2)
+set_pwm(0, 450)
+
+```
+
+
+#### 2. auto_endpoints_safe.py（伺服端點校正工具 = 只在調機時跑)
 
 用途： 互動式「一小步一小步」移動 SG90（透過 PCA9685），讓你手動找出 X/Y 軸的安全極限位置（X_MIN/X_MAX/Y_MIN/Y_MAX），最後把結果貼回 config.py，避免伺服撐住或超行程。
 
@@ -195,7 +273,7 @@ def find_endpoint(ch, start_pwm, direction, label):
 main() 依序找 X_MAX → X_MIN → Y_MAX → Y_MIN，最後印出校正值，讓我貼回 config.py。
 
 
-2. config.py（全域硬體與行為設定）
+#### 3. config.py（全域硬體與行為設定）
 
 用途： 集中管理伺服端點、通道對應、GPIO 腳位與 Web 服務設定，讓主程式與校正工具共用同一組參數，避免寫死在程式中。
 
@@ -221,7 +299,7 @@ Y_SCALE = 0.65
 
 同時包含 磁簧開關、蜂鳴器 GPIO 與 HTTPS 伺服器設定，作為專案的單一設定來源。
 
-3. gimbal.py（雙軸雲台控制抽象）
+#### 4. gimbal.py（雙軸雲台控制抽象）
 
 用途： 將「前端輸入的 -1.0～+1.0 傾斜值」轉換為安全的 PWM，統一處理中心點、端點限制與縮放，避免直接操作伺服造成抖動或硬撐。
 
@@ -238,7 +316,7 @@ def xy_to_pwm(self, v):
 
 這支會被主程式 app.py 在遊戲運作時呼叫，遊戲中實際控制雲台
 
-4. pca9685_raw.py（PCA9685 低階驅動）
+#### 5. pca9685_raw.py（PCA9685 低階驅動）
 
 用途： 直接透過 I2C 操作 PCA9685，設定 PWM 頻率並對指定 channel 輸出 PWM，是所有伺服控制與校正程式的最底層依賴。
 
@@ -253,7 +331,7 @@ def set_pwm_off(self, channel, off):
 被 gimbal.py 與所有 校正程式 共用，屬於專案的 核心底層模組（必用）。
 
 
-5. app.py（主程式／Web 控制與遊戲邏輯）
+#### 6. app.py（主程式／Web 控制與遊戲邏輯）
 
 用途： 專案的實際執行入口。提供手機端 Web API 控制雲台傾斜，並監聽磁簧開關達成終點後觸發蜂鳴器。
 
@@ -411,6 +489,9 @@ YouTube 示範影片： https://youtu.be/YX4nWWXMFIo?si=_V7ajburnaWpJGNI
 ├── config.py
 ├── gimbal.py
 ├── pca9685_raw.py
+├── auto_endpoints_safe.py
+├── servo_test_ch0.py
+├── servo_test_ch2.py
 ├── static/index.html
 └── README.md
 ```
