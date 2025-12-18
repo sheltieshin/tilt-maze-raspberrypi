@@ -177,7 +177,7 @@ finally:
 ## Step 8：程式碼說明
 
 
-### 程式碼結構（Source Code）
+### 程式架構（Source Code）
 
 ```text
 .
@@ -228,7 +228,7 @@ Interface Options
 ```
 sudo reboot
 ```
-- 4.確認 I2C 是否啟用
+- 4. 確認 I2C 是否啟用
 ```
 i2cdetect -y 1
 ```
@@ -240,7 +240,7 @@ i2cdetect -y 1
 PCA9685 預設位址為 0x40（可由板上 A0–A5 調整）
 
 
-
+## 相關程式說明
 
 
 ### 1. servo_test_ch0.py、servo_test_ch2.py （單通道伺服測試程式）
