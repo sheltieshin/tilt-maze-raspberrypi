@@ -190,6 +190,7 @@ finally:
 ├── servo_test_ch2.py
 ├── static/index.html
 └── README.md
+```
 
 ### 必要安裝套件
 - Python 3.7+
@@ -198,16 +199,17 @@ finally:
 - smbus (I2C)
 
 ### Install
-sudo apt update
-sudo apt install -y python3-pip python3-rpi.gpio python3-smbus i2c-tools
-pip3 install flask
+- sudo apt update
+- sudo apt install -y python3-pip python3-rpi.gpio python3-smbus i2c-tools
+- pip3 install flask
+
 
 | 套件       | 用到的程式                                                         |
 | -------- | ------------------------------------------------------------- |
 | Flask    | `app.py`                                                      |
 | RPi.GPIO | `app.py`                                                      |
 | smbus    | `pca9685_raw.py`, `auto_endpoints_safe.py`, `servo_test_*.py` |
-| 內建模組     | `gimbal.py`, `config.py`                                      |
+| 內建模組  | `gimbal.py`, `config.py`                                      |
 
 
 ## Enable I2C (Raspberry Pi)
@@ -299,6 +301,8 @@ Y_SCALE = 0.65
 
 同時包含 磁簧開關、蜂鳴器 GPIO 與 HTTPS 伺服器設定，作為專案的單一設定來源。
 
+
+
 #### 4. gimbal.py（雙軸雲台控制抽象）
 
 用途： 將「前端輸入的 -1.0～+1.0 傾斜值」轉換為安全的 PWM，統一處理中心點、端點限制與縮放，避免直接操作伺服造成抖動或硬撐。
@@ -316,11 +320,15 @@ def xy_to_pwm(self, v):
 
 這支會被主程式 app.py 在遊戲運作時呼叫，遊戲中實際控制雲台
 
-#### 5. pca9685_raw.py（PCA9685 低階驅動）
 
-用途： 直接透過 I2C 操作 PCA9685，設定 PWM 頻率並對指定 channel 輸出 PWM，是所有伺服控制與校正程式的最底層依賴。
+
+#### 5. pca9685_raw.py（PCA9685 Driver）
+
+用途： 本專案使用 **自製的低階 PCA9685 驅動**，不依賴外部第三方套件（如 Adafruit library），直接透過 I2C 操作 PCA9685，設定 PWM 頻率並對指定 channel 輸出 PWM，是所有伺服控制與校正程式的最底層依賴。
+
 
 ```
+pca = PCA9685Raw(address=0x40, freq_hz=50)
 def set_pwm_off(self, channel, off):
     self.set_pwm(channel, 0, int(off))
 
