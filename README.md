@@ -31,14 +31,23 @@
 * 外接 5V 電源
 * 杜邦線、迷宮平台、支柱、磁鐵球
 
+![861680_0](https://github.com/user-attachments/assets/dd1baf9b-5941-4508-b1f5-1357179e99c4)
+
+![863084_0](https://github.com/user-attachments/assets/0e6888e3-4791-40c7-85f4-4552cc4aa8b3)
+
+![863089_0](https://github.com/user-attachments/assets/270dde5c-0fcb-43d4-8fdc-0113758b82e8)
+
+![863087_0](https://github.com/user-attachments/assets/bcb4f2a6-248f-4fed-9d27-fd297eda8a5e)
+
+![863116](https://github.com/user-attachments/assets/20bf2360-1c3c-4fe6-a7ac-96fd60debb70)
+
+
 ### 軟體
 
 * Raspberry Pi OS
 * Python 3.7
 * Flask
 * RPi.GPIO
-
-![863089_0](https://github.com/user-attachments/assets/270dde5c-0fcb-43d4-8fdc-0113758b82e8)
 
 
 ---
