@@ -124,7 +124,6 @@ try:
     while True:
         now = GPIO.input(REED_GPIO)
 
-        # 只在「剛被按下」那一瞬間叫
         if last == 1 and now == 0:
             print("REED SWITCH")
             GPIO.output(BUZZER_PIN, True)
@@ -235,10 +234,6 @@ i2cdetect -y 1
 
 若看到 40，表示 PCA9685 已被偵測到。
 
-本專案使用 I2C bus 1（Raspberry Pi 預設）
-
-PCA9685 預設位址為 0x40（可由板上 A0–A5 調整）
-
 
 ## 相關程式說明
 
@@ -247,7 +242,7 @@ PCA9685 預設位址為 0x40（可由板上 A0–A5 調整）
 
 用途： 最小化測試 PCA9685 CH0 是否能正常輸出 PWM，確認 I2C 與伺服接線是否正常。
 
-僅用於 硬體初期驗證與除錯；正式系統已由 pca9685_raw.py + gimbal.py 取代，不會在主程式中使用。
+僅用於硬體初期驗證與除錯；正式系統已由 pca9685_raw.py + gimbal.py 取代，不會在主程式中使用。
 
 
 ```
@@ -261,7 +256,7 @@ set_pwm(0, 450)
 
 ### 2. auto_endpoints_safe.py（伺服端點校正工具 = 只在調機時跑)
 
-用途： 互動式「一小步一小步」移動 SG90（透過 PCA9685），讓你手動找出 X/Y 軸的安全極限位置（X_MIN/X_MAX/Y_MIN/Y_MAX），最後把結果貼回 config.py，避免伺服撐住或超行程。
+用途： 互動式「一小步一小步」移動 SG90（透過 PCA9685），可手動找出 X/Y 軸的安全極限位置（X_MIN/X_MAX/Y_MIN/Y_MAX），最後把結果貼回 config.py，避免伺服撐住或超行程。
 
 ```
 def find_endpoint(ch, start_pwm, direction, label):
@@ -353,7 +348,7 @@ def set_pwm_off(self, channel, off):
 
 
 
-- 初始化雲台控制（PCA9685 + Gimbal）：建立 PCA9685 與雙軸雲台控制物件，載入 config.py 的端點與中心值，啟動時先回中立位置。
+##### (a) 初始化雲台控制（PCA9685 + Gimbal）：建立 PCA9685 與雙軸雲台控制物件，載入 config.py 的端點與中心值，啟動
 
 ```
 pca = PCA9685Raw(address=config.PCA_ADDR, freq_hz=50)
@@ -380,7 +375,7 @@ gimbal.center()
 
 
 
-- 磁簧開關監聽（終點偵測）：背景執行緒監聽磁簧開關 1→0 邊緣，球進洞即判定通關、回中立並鳴叫提示。
+##### (b) 磁簧開關監聽（終點偵測）：背景執行緒監聽磁簧開關 1→0 邊緣，球進洞即判定通關、回中立並鳴叫提示。
 
 ```
 def goal_watcher():
@@ -392,7 +387,7 @@ def goal_watcher():
 
 
 
-- 蜂鳴器控制（避免重複觸發）：使用 lock 保護蜂鳴器，避免多執行緒同時鳴叫造成異常。
+##### (c) 蜂鳴器控制（避免重複觸發）：使用 lock 保護蜂鳴器，避免多執行緒同時鳴叫造成異常。
 
 ```
 def beep(duration=0.8):
@@ -404,7 +399,7 @@ def beep(duration=0.8):
 
 
 
-- Web API：雲台傾斜控制（遊戲核心）：接收前端傳來的標準化 X/Y 值，透過 gimbal.py 轉為安全 PWM 控制雙軸雲台；通關後自動鎖定操作。
+##### (d) Web API：雲台傾斜控制（遊戲核心）：接收前端傳來的標準化 X/Y 值，透過 gimbal.py 轉為安全 PWM 控制雙軸雲台；通關後自動鎖定操作。
 
 ```
 @app.route("/api/tilt", methods=["POST"])
@@ -416,7 +411,7 @@ def api_tilt():
 
 
 
-- 系統啟動（HTTPS + 背景監聽）：啟動終點監聽執行緒，並以 HTTPS 提供手機端即時控制介面。
+##### (e) 系統啟動（HTTPS + 背景監聽）：啟動終點監聽執行緒，並以 HTTPS 提供手機端即時控制介面。
 
 ```
 threading.Thread(target=goal_watcher, daemon=True).start()
@@ -431,8 +426,6 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 
 ## Step 9：機構設計
 
-本專題使用 **雙層雙軸雲台結構**：
-
 * 左側雲台：控制左右傾斜
 * 下方雲台：控制前後傾斜
 * 平台浮動於最上層
@@ -441,7 +434,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 <img src="https://github.com/user-attachments/assets/270dde5c-0fcb-43d4-8fdc-0113758b82e8" width="600" alt="863089_0">
 
 
-圖 6：本專題採用分離式雙雲台配置，一個雲台位於左側中間控制左右傾斜，另一個雲台位於下方中間控制前後傾斜，以簡化結構並提升穩定性。
+圖 6：本專題採用分離式雙雲台配置
 
 ---
 
@@ -519,8 +512,6 @@ YouTube 示範影片： https://youtu.be/YX4nWWXMFIo?si=_V7ajburnaWpJGNI
 * Scott Kildall, *Raspberry Pi: Python scripting the GPIO*
   [https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/](https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/)
 
-* ARM Cloud IoT Core Kit Examples
-  [https://github.com/ARM-software/Cloud-IoT-Core-Kit-Examples](https://github.com/ARM-software/Cloud-IoT-Core-Kit-Examples)
 
 * PCA9685 Datasheet
   [https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf](https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf)
