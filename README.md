@@ -37,7 +37,7 @@
 
 圖 1：整體系統架構，包含 Raspberry Pi、PCA9685、雙雲台傾斜平台與迷宮板。
 
-<img src="https://github.com/user-attachments/assets/6590991b-7a9f-49bf-a731-89dc15af97a7" width="500" alt="863088_0">
+<img src="https://github.com/user-attachments/assets/6590991b-7a9f-49bf-a731-89dc15af97a7" width="600" alt="863088_0">
 
 圖 2：整體接線圖
 
