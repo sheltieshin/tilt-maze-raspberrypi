@@ -37,6 +37,10 @@
 
 圖 1：整體系統架構，包含 Raspberry Pi、PCA9685、雙雲台傾斜平台與迷宮板。
 
+<img src="https://github.com/user-attachments/assets/6590991b-7a9f-49bf-a731-89dc15af97a7" width="500" alt="863088_0">
+
+圖 2：整體接線圖
+
 
 ### 軟體
 
@@ -78,7 +82,7 @@ GPIO 允許 Raspberry Pi 與外部世界互動。
 <img src="https://github.com/user-attachments/assets/7c017da7-1a25-4f9e-9d11-0f28584bc2f6" width="600" alt="863081_0">
 
 
-圖 2：磁簧開關
+圖 3：磁簧開關
 
 ---
 
@@ -95,7 +99,7 @@ GPIO 允許 Raspberry Pi 與外部世界互動。
 <img src="https://github.com/user-attachments/assets/20bf2360-1c3c-4fe6-a7ac-96fd60debb70" width="600" alt="863116">
 
 
-圖 3：磁簧開關 & 蜂鳴器
+圖 4：磁簧開關 & 蜂鳴器
 
 
 ---
@@ -162,13 +166,13 @@ finally:
 <img src="https://github.com/user-attachments/assets/a6960643-95f0-42c1-9e9c-6cc9edf43d87" width="600" alt="863116">
 
 
-圖 4：PCA9685 接線
+圖 5：PCA9685 接線
 
 
 <img src="https://github.com/user-attachments/assets/bcb4f2a6-248f-4fed-9d27-fd297eda8a5e" width="600" alt="863087_0">
 
 
-圖 5：5V5A電源
+圖 6：5V5A電源
 
 
 ---
@@ -434,7 +438,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 <img src="https://github.com/user-attachments/assets/270dde5c-0fcb-43d4-8fdc-0113758b82e8" width="600" alt="863089_0">
 
 
-圖 6：本專題採用分離式雙雲台配置
+圖 7：本專題採用分離式雙雲台配置
 
 ---
 
@@ -453,7 +457,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 <img src="https://github.com/user-attachments/assets/93620567-0bd4-436e-9799-f2cd071c9f7c" width="400" alt="863126_0">
 
 
-圖 7: 進入頁面後，雲台平台會維持在「中立水平位置」，圓形搖桿顯示在中心點，代表目前沒有輸入傾斜指令。
+圖 8: 進入頁面後，雲台平台會維持在「中立水平位置」，圓形搖桿顯示在中心點，代表目前沒有輸入傾斜指令。
 
 - 介面上方提供三個控制按鈕：
 - Enable：啟用搖桿控制
@@ -465,7 +469,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 <img src="https://github.com/user-attachments/assets/ad7eacd6-11c4-4e08-8cdf-242c1f7d3468" width="400" alt="863125_0">
 
 
-圖 8: 圓形搖桿操作示意（連續傾斜與斜向移動）
+圖 9: 圓形搖桿操作示意（連續傾斜與斜向移動）
 
 - 使用者可拖曳圓形搖桿，連續控制平台的前後（Y 軸）與左右（X 軸）傾斜角度。
 - 搖桿支援 斜向（↖ ↗ ↙ ↘）輸入，可同時產生 X 與 Y 的控制值，使球體能夠沿斜向路徑滾動。
@@ -476,7 +480,7 @@ app.py 為整個迷宮球系統的控制核心，整合 Web 控制、雙軸雲�
 <img src="https://github.com/user-attachments/assets/22ea079b-a207-4911-af92-7572fac01844" width="400" alt="863131">
 
 
-圖 9: GOAL 觸發後的系統反應畫面
+圖 10: GOAL 觸發後的系統反應畫面
 
 - 當球體滾入終點並觸發 磁簧開關（Reed Switch） 時，系統會：
 - 立即顯示 🎉 GOAL！ 提示視窗，啟動蜂鳴器發出提示音，自動將平台回到中立位置
