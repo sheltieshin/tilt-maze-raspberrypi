@@ -516,6 +516,8 @@ YouTube 示範影片： https://youtu.be/YX4nWWXMFIo?si=_V7ajburnaWpJGNI
 * Scott Kildall, *Raspberry Pi: Python scripting the GPIO*
   [https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/](https://www.instructables.com/Raspberry-Pi-Python-scripting-the-GPIO/)
 
+* How to Power & Wire 16 Servo Motors for Arduino Using The PCA9685 PWM driver
+  [https://www.youtube.com/watch?v=UeS5nY345kc](https://www.youtube.com/watch?v=UeS5nY345kc)
 
 * PCA9685 Datasheet
   [https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf](https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf)
